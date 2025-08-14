@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:walkout_app1/services/auth_service.dart';
 
 class AddPaymentScreen extends StatefulWidget {
@@ -12,47 +13,42 @@ class AddPaymentScreen extends StatefulWidget {
 class _AddPaymentScreenState extends State<AddPaymentScreen> {
   final _formKey = GlobalKey<FormState>();
   bool _isLoading = false;
-
   CardFieldInputDetails? _card;
-
   final _nameController = TextEditingController();
 
   Future<void> _addCard() async {
-    if (_formKey.currentState!.validate() && _card?.complete == true) {
+    if (_formKey.currentState!.validate() && (_card?.complete ?? false)) {
+
       setState(() => _isLoading = true);
-
       try {
-        final billingDetails = BillingDetails(
-          name: _nameController.text,
-        );
-
+        final billingDetails = BillingDetails(name: _nameController.text);
         final paymentMethod = await Stripe.instance.createPaymentMethod(
           params: PaymentMethodParams.card(
-            paymentMethodData: PaymentMethodData(
-              billingDetails: billingDetails,
-            ),
+            paymentMethodData: PaymentMethodData(billingDetails: billingDetails),
           ),
         );
-
         final token = paymentMethod.id;
-
         final success = await AuthService().updatePaymentToken(token);
-
         if (!mounted) return;
         setState(() => _isLoading = false);
-
         if (success) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text("Card added successfully!"),
-              backgroundColor: Color(0xFF50D890),
+            SnackBar(
+              content: Text(
+                "تمت إضافة البطاقة بنجاح!",
+                style: GoogleFonts.ibmPlexSansArabic(),
+              ),
+              backgroundColor: const Color(0xFF50D890),
             ),
           );
           Navigator.of(context).pop(true);
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text("Failed to save payment method."),
+            SnackBar(
+              content: Text(
+                "فشل في حفظ طريقة الدفع.",
+                style: GoogleFonts.ibmPlexSansArabic(),
+              ),
               backgroundColor: Colors.red,
             ),
           );
@@ -61,16 +57,21 @@ class _AddPaymentScreenState extends State<AddPaymentScreen> {
         setState(() => _isLoading = false);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text("Error: ${e.toString()}"),
+            content: Text(
+              "خطأ: ${e.toString()}",
+              style: GoogleFonts.ibmPlexSansArabic(),
+            ),
             backgroundColor: Colors.red,
           ),
         );
       }
     } else {
-      // إذا لم يتم إدخال بيانات البطاقة كاملة
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Please enter complete card details."),
+        SnackBar(
+          content: Text(
+            "يرجى إدخال تفاصيل البطاقة كاملة.",
+            style: GoogleFonts.ibmPlexSansArabic(),
+          ),
           backgroundColor: Colors.orange,
         ),
       );
@@ -87,50 +88,60 @@ class _AddPaymentScreenState extends State<AddPaymentScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Add Payment Method"),
+        title: Text(
+          "إضافة طريقة دفع",
+          style: GoogleFonts.ibmPlexSansArabic(
+            fontWeight: FontWeight.w600,
+            fontSize: 20,
+          ),
+        ),
+        centerTitle: true,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24.0),
         child: Form(
           key: _formKey,
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(height: 40),
-
+              Text(
+                "أدخل تفاصيل البطاقة",
+                style: Theme.of(context).textTheme.displayLarge,
+              ),
+              const SizedBox(height: 16),
               CardField(
+                style: GoogleFonts.ibmPlexSansArabic(
+                  color: const Color(0xFF8A8A8F),
+                ),
                 onCardChanged: (card) {
                   setState(() {
                     _card = card;
                   });
                 },
               ),
-
               const SizedBox(height: 16),
-
               TextFormField(
                 controller: _nameController,
-                decoration: const InputDecoration(labelText: "Name on Card"),
+                decoration: InputDecoration(
+                  labelText: "الاسم على البطاقة",
+                  labelStyle: GoogleFonts.ibmPlexSansArabic(),
+                ),
                 validator: (value) =>
-                    value?.isEmpty ?? true ? 'Please enter the name on the card' : null,
+                    value?.isEmpty ?? true ? 'يرجى إدخال الاسم على البطاقة' : null,
               ),
-
               const SizedBox(height: 32),
-
               SizedBox(
                 width: double.infinity,
-                height: 50,
                 child: _isLoading
                     ? const Center(child: CircularProgressIndicator())
                     : ElevatedButton(
                         onPressed: _addCard,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF50D890),
-                          foregroundColor: Colors.white,
-                        ),
-                        child: const Text(
-                          "Add Card",
-                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                        child: Text(
+                          "إضافة البطاقة",
+                          style: GoogleFonts.ibmPlexSansArabic(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ),
               ),
